@@ -38,7 +38,7 @@ pre{text-align:left;background:#050d1a;color:#4FC3F7;padding:14px;border-radius:
 <div class="icon">🔒</div>
 <h1>Protected By Nexxa OP</h1>
 <p>Enter Key</p>
-<input type="text" id="key" placeholder="Enter Key (40 caracteres)" maxlength="40">
+<input type="text" id="key" placeholder="Enter Key" maxlength="60">
 <div class="btns">
 <button id="getKeyBtn">Get Key</button>
 <button id="continueBtn">Continue</button>
@@ -48,8 +48,10 @@ pre{text-align:left;background:#050d1a;color:#4FC3F7;padding:14px;border-radius:
 </div>
 
 <script>
-const KEY_DATA_URL = window.location.pathname + "/keydata";
-const RAW_URL = window.location.pathname + "/raw";
+const BASE = window.location.pathname;
+const KEY_DATA_URL = BASE + "/keydata";
+const VERIFY_URL = BASE + "/verify";
+const RAW_URL = BASE + "/raw";
 const key = document.getElementById("key");
 const getKeyBtn = document.getElementById("getKeyBtn");
 const continueBtn = document.getElementById("continueBtn");
@@ -113,9 +115,13 @@ continueBtn.onclick = async () => {
   continueBtn.textContent = "Verifying...";
   msg.innerHTML = "";
   try {
-    const master = await fetch("/master");
-    const masterData = await master.json();
-    if (k !== masterData.key) {
+    const v = await fetch(VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: k })
+    });
+    const vd = await v.json();
+    if (!vd.ok) {
       msg.innerHTML = '<div class="error">Incorrect Password</div>';
       continueBtn.disabled = false;
       continueBtn.textContent = "Continue";
