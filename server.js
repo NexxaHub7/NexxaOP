@@ -26,36 +26,8 @@ function genId() {
   return crypto.randomBytes(3).toString("hex");
 }
 
-function parseConfig(code) {
-  const cfg = { getKey: "", notify: "" };
-  const lineas = code.split("\n");
-  for (const ln of lineas) {
-    const m1 = ln.match(/^\s*--\s*Nexxa:GetKey\s*=\s*(.+)$/i);
-    if (m1) { cfg.getKey = m1[1].trim(); continue; }
-    const m2 = ln.match(/^\s*--\s*Nexxa:Notify\s*=\s*(.+)$/i);
-    if (m2) { cfg.notify = m2[1].trim(); continue; }
-    if (ln.trim() && !ln.trim().startsWith("--")) break;
-  }
-  return cfg;
-}
-
-function stripConfig(code) {
-  const lineas = code.split("\n");
-  const resultado = [];
-  let saltando = true;
-  for (const ln of lineas) {
-    if (saltando) {
-      const t = ln.trim();
-      if (!t || t.startsWith("--Nexxa:") || t.startsWith("-- Nexxa:")) continue;
-      saltando = false;
-    }
-    resultado.push(ln);
-  }
-  return resultado.join("\n");
-}
-
 app.post("/upload", (req, res) => {
-  const { code } = req.body;
+  const { code, customKey, getKeyUrl, notifyText } = req.body;
   if (!code || typeof code !== "string") {
     return res.status(400).json({ error: "Codigo vacio" });
   }
@@ -69,23 +41,24 @@ app.post("/upload", (req, res) => {
     intentos++;
   }
 
-  const cfg = parseConfig(code);
-  const codeLimpio = stripConfig(code);
+  const scriptKey = (customKey && customKey.trim().length > 0) ? customKey.trim() : "";
 
   try {
     fs.mkdirSync(folder, { recursive: true });
-    fs.writeFileSync(path.join(folder, "code.lua"), codeLimpio, "utf-8");
-    fs.writeFileSync(path.join(folder, "getkey.txt"), cfg.getKey, "utf-8");
-    fs.writeFileSync(path.join(folder, "notify.txt"), cfg.notify, "utf-8");
+    fs.writeFileSync(path.join(folder, "code.lua"), code, "utf-8");
+    fs.writeFileSync(path.join(folder, "scriptkey.txt"), scriptKey, "utf-8");
+    fs.writeFileSync(path.join(folder, "getkey.txt"), getKeyUrl || "", "utf-8");
+    fs.writeFileSync(path.join(folder, "notify.txt"), notifyText || "", "utf-8");
 
     const host = req.get("host");
     return res.json({
       id,
-      hasKeySystem: true,
-      hasNotify: cfg.notify !== "",
-      notifyText: cfg.notify,
-      getKeyUrl: cfg.getKey,
+      hasKeySystem: scriptKey !== "",
+      scriptKey: scriptKey,
       masterKey: getMasterKey(),
+      hasNotify: (notifyText || "") !== "",
+      notifyText: notifyText || "",
+      getKeyUrl: getKeyUrl || "",
       url: "https://" + host + "/" + id + "/raw",
       viewUrl: "https://" + host + "/" + id
     });
@@ -109,6 +82,26 @@ app.get("/:id/keydata", (req, res) => {
   const getKeyUrl = fs.existsSync(getkeyFile) ? fs.readFileSync(getkeyFile, "utf-8").trim() : "";
   const notifyText = fs.existsSync(notifyFile) ? fs.readFileSync(notifyFile, "utf-8").trim() : "";
   res.json({ getKeyUrl, notifyText });
+});
+
+app.post("/:id/verify", (req, res) => {
+  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
+  const folder = path.join(UPLOADS, id);
+  if (!fs.existsSync(folder)) {
+    return res.status(404).json({ ok: false, error: "Not found" });
+  }
+  const providedKey = (req.body.key || "").trim();
+  const scriptKeyFile = path.join(folder, "scriptkey.txt");
+  const scriptKey = fs.existsSync(scriptKeyFile) ? fs.readFileSync(scriptKeyFile, "utf-8").trim() : "";
+  const masterKey = getMasterKey();
+
+  if (providedKey === masterKey) {
+    return res.json({ ok: true, via: "master" });
+  }
+  if (scriptKey && providedKey === scriptKey) {
+    return res.json({ ok: true, via: "script" });
+  }
+  return res.json({ ok: false });
 });
 
 app.get("/:id/raw", (req, res) => {
@@ -137,4 +130,4 @@ app.get("/:id", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Nexxa OP backend en puerto " + PORT + " | Master: " + getMasterKey()));
+app.listen(PORT, () => console.log("Nexxa OP en puerto " + PORT + " | Master: " + getMasterKey()));
