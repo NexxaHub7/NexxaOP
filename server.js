@@ -67,10 +67,96 @@ local function fetchUrl(url, method, body)
 end
 `;
 
+  const cacheAndFpsBoost = `
+local function clearCacheAndBoost()
+  pcall(function()
+    local Lighting = game:GetService("Lighting")
+    local Terrain = workspace:FindFirstChildOfClass("Terrain")
+
+    for _, v in ipairs(Lighting:GetChildren()) do
+      pcall(function()
+        if v:IsA("BlurEffect") or v:IsA("BloomEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("SunRaysEffect") or v:IsA("DepthOfFieldEffect") then
+          v.Enabled = false
+        end
+      end)
+    end
+
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.ShadowSoftness = 0
+    Lighting.Brightness = 1
+
+    if Terrain then
+      pcall(function()
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+        Terrain.Decoration = false
+      end)
+    end
+
+    for _, v in ipairs(workspace:GetDescendants()) do
+      pcall(function()
+        if v:IsA("BasePart") and not v:IsA("Terrain") then
+          local parentHasHumanoid = false
+          if v.Parent and v.Parent:FindFirstChild("Humanoid") then
+            parentHasHumanoid = true
+          end
+          if not parentHasHumanoid then
+            v.Material = Enum.Material.SmoothPlastic
+            v.Reflectance = 0
+            v.CastShadow = false
+            if v:IsA("MeshPart") then
+              v.TextureID = ""
+            end
+          end
+        elseif v:IsA("Decal") or v:IsA("Texture") then
+          v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Sparkles") or v:IsA("Fire") or v:IsA("Smoke") then
+          v.Enabled = false
+        elseif v:IsA("Light") then
+          v.Enabled = false
+        elseif v:IsA("PostEffect") then
+          v.Enabled = false
+        elseif v:IsA("SurfaceAppearance") then
+          v.Parent = nil
+        end
+      end)
+    end
+
+    local stats = game:GetService("Stats")
+    pcall(function()
+      stats.Rendering.RenderStats:Clear()
+    end)
+
+    for _, v in ipairs(game:GetDescendants()) do
+      pcall(function()
+        if v:IsA("BasePart") and v.Material ~= Enum.Material.SmoothPlastic then
+          v.Material = Enum.Material.SmoothPlastic
+        end
+      end)
+    end
+  end)
+end
+`;
+
+  const waitAndRun = `
+task.wait(1)
+clearCacheAndBoost()
+task.wait(0.1)
+local realCode = fetchUrl("${realUrl}?k=" .. game:GetService("HttpService"):UrlEncode(k), "GET")
+if realCode then
+  local fn = loadstring(realCode)
+  if fn then pcall(fn) end
+end
+`;
+
   if (!hasKeySystem) {
     return `--By Nexxa OP
 local Players = game:GetService("Players")
 ${httpHelper}
+${cacheAndFpsBoost}
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
@@ -165,6 +251,8 @@ if notifyText ~= "" then
   task.wait(0.5)
   NS:Destroy()
 end
+clearCacheAndBoost()
+task.wait(1)
 local realCode = fetchUrl("${realUrl}", "GET")
 if realCode then
   local fn = loadstring(realCode)
@@ -176,6 +264,7 @@ end
   return `--By Nexxa OP
 local Players = game:GetService("Players")
 ${httpHelper}
+${cacheAndFpsBoost}
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
@@ -400,6 +489,9 @@ ContinueBtn.MouseButton1Click:Connect(function()
     task.wait(0.5)
     NS:Destroy()
   end
+  task.wait(1)
+  clearCacheAndBoost()
+  task.wait(0.1)
   local realCode = fetchUrl("${realUrl}?k=" .. game:GetService("HttpService"):UrlEncode(k), "GET")
   if realCode then
     local fn = loadstring(realCode)
@@ -498,45 +590,4 @@ app.get("/:id/real", (req, res) => {
     return res.status(403).send("-- Incorrect Password");
   }
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.send(fs.readFileSync(codeFile, "utf-8"));
-});
-
-app.get("/:id/raw", (req, res) => {
-  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
-  const folder = path.join(UPLOADS, id);
-  if (!fs.existsSync(folder)) {
-    return res.status(404).send("-- Not found");
-  }
-  const scriptKeyFile = path.join(folder, "scriptkey.txt");
-  const scriptKey = fs.existsSync(scriptKeyFile) ? fs.readFileSync(scriptKeyFile, "utf-8").trim() : "";
-  const loader = genLoader(req.get("host"), id, scriptKey !== "");
-  res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.send(loader);
-});
-
-app.get("/:id/debug", (req, res) => {
-  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
-  const folder = path.join(UPLOADS, id);
-  if (!fs.existsSync(folder)) {
-    return res.status(404).json({ error: "Not found" });
-  }
-  const scriptKeyFile = path.join(folder, "scriptkey.txt");
-  const scriptKey = fs.existsSync(scriptKeyFile) ? fs.readFileSync(scriptKeyFile, "utf-8").trim() : "";
-  const getkeyFile = path.join(folder, "getkey.txt");
-  const getKeyUrl = fs.existsSync(getkeyFile) ? fs.readFileSync(getkeyFile, "utf-8").trim() : "";
-  const notifyFile = path.join(folder, "notify.txt");
-  const notifyText = fs.existsSync(notifyFile) ? fs.readFileSync(notifyFile, "utf-8").trim() : "";
-  res.json({ id, scriptKey, getKeyUrl, notifyText, masterKey: getMasterKey() });
-});
-
-app.get("/:id", (req, res) => {
-  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
-  const folder = path.join(UPLOADS, id);
-  if (!fs.existsSync(folder)) {
-    return res.status(404).send("-- Not found");
-  }
-  res.redirect("/" + id + "/raw");
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Nexxa OP en puerto " + PORT + " | Master: " + getMasterKey()));
+  res.send(fs.readFileSync(codeFile,
