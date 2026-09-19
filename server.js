@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 const UPLOADS = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOADS)) fs.mkdirSync(UPLOADS);
@@ -35,7 +36,6 @@ function genLoader(host, id, hasKeySystem) {
     return `--By Nexxa OP
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local CoreGui = pcall(function() return game:GetService("CoreGui") end)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
@@ -45,8 +45,8 @@ if not ScreenGui.Parent then
   ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 end
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 420, 0, 160)
-Frame.Position = UDim2.new(0.5, -210, 0.5, -80)
+Frame.Size = UDim2.new(0, 420, 0, 180)
+Frame.Position = UDim2.new(0.5, -210, 0.5, -90)
 Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
@@ -54,23 +54,29 @@ Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 16)
 local Stroke = Instance.new("UIStroke", Frame)
 Stroke.Color = Color3.fromRGB(255, 140, 0)
 Stroke.Thickness = 2
+local Icon = Instance.new("ImageLabel")
+Icon.Size = UDim2.new(0, 60, 0, 60)
+Icon.Position = UDim2.new(0.5, -30, 0, 15)
+Icon.BackgroundTransparency = 1
+Icon.Image = "rbxassetid://88158601145345"
+Icon.Parent = Frame
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Position = UDim2.new(0, 0, 0, 40)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 85)
 Title.BackgroundTransparency = 1
 Title.Text = "Protected By Nexxa OP"
 Title.TextColor3 = Color3.fromRGB(255, 140, 0)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 22
+Title.TextSize = 20
 Title.Parent = Frame
 local Sub = Instance.new("TextLabel")
-Sub.Size = UDim2.new(1, 0, 0, 30)
-Sub.Position = UDim2.new(0, 0, 0, 90)
+Sub.Size = UDim2.new(1, 0, 0, 20)
+Sub.Position = UDim2.new(0, 0, 0, 120)
 Sub.BackgroundTransparency = 1
-Sub.Text = "Ejecutando script..."
+Sub.Text = "Loading script..."
 Sub.TextColor3 = Color3.fromRGB(180, 180, 180)
 Sub.Font = Enum.Font.Gotham
-Sub.TextSize = 14
+Sub.TextSize = 13
 Sub.Parent = Frame
 task.wait(5)
 ScreenGui:Destroy()
@@ -146,8 +152,8 @@ if not ScreenGui.Parent then
   ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 end
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 420, 0, 160)
-Frame.Position = UDim2.new(0.5, -210, 0.5, -80)
+Frame.Size = UDim2.new(0, 420, 0, 180)
+Frame.Position = UDim2.new(0.5, -210, 0.5, -90)
 Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
@@ -155,23 +161,29 @@ Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 16)
 local Stroke = Instance.new("UIStroke", Frame)
 Stroke.Color = Color3.fromRGB(255, 140, 0)
 Stroke.Thickness = 2
+local Icon = Instance.new("ImageLabel")
+Icon.Size = UDim2.new(0, 60, 0, 60)
+Icon.Position = UDim2.new(0.5, -30, 0, 15)
+Icon.BackgroundTransparency = 1
+Icon.Image = "rbxassetid://88158601145345"
+Icon.Parent = Frame
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Position = UDim2.new(0, 0, 0, 40)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 85)
 Title.BackgroundTransparency = 1
 Title.Text = "Protected By Nexxa OP"
 Title.TextColor3 = Color3.fromRGB(255, 140, 0)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 22
+Title.TextSize = 20
 Title.Parent = Frame
 local Sub = Instance.new("TextLabel")
-Sub.Size = UDim2.new(1, 0, 0, 30)
-Sub.Position = UDim2.new(0, 0, 0, 90)
+Sub.Size = UDim2.new(1, 0, 0, 20)
+Sub.Position = UDim2.new(0, 0, 0, 120)
 Sub.BackgroundTransparency = 1
 Sub.Text = "Loading..."
 Sub.TextColor3 = Color3.fromRGB(180, 180, 180)
 Sub.Font = Enum.Font.Gotham
-Sub.TextSize = 14
+Sub.TextSize = 13
 Sub.Parent = Frame
 task.wait(5)
 ScreenGui:Destroy()
@@ -196,27 +208,33 @@ Instance.new("UICorner", Frame2).CornerRadius = UDim.new(0, 16)
 local Stroke2 = Instance.new("UIStroke", Frame2)
 Stroke2.Color = Color3.fromRGB(255, 140, 0)
 Stroke2.Thickness = 2
+local Icon2 = Instance.new("ImageLabel")
+Icon2.Size = UDim2.new(0, 50, 0, 50)
+Icon2.Position = UDim2.new(0.5, -25, 0, 12)
+Icon2.BackgroundTransparency = 1
+Icon2.Image = "rbxassetid://88158601145345"
+Icon2.Parent = Frame2
 local Title2 = Instance.new("TextLabel")
-Title2.Size = UDim2.new(1, 0, 0, 40)
-Title2.Position = UDim2.new(0, 0, 0, 20)
+Title2.Size = UDim2.new(1, 0, 0, 25)
+Title2.Position = UDim2.new(0, 0, 0, 68)
 Title2.BackgroundTransparency = 1
 Title2.Text = "Protected By Nexxa OP"
 Title2.TextColor3 = Color3.fromRGB(255, 140, 0)
 Title2.Font = Enum.Font.GothamBold
-Title2.TextSize = 22
+Title2.TextSize = 18
 Title2.Parent = Frame2
 local Sub2 = Instance.new("TextLabel")
 Sub2.Size = UDim2.new(1, 0, 0, 20)
-Sub2.Position = UDim2.new(0, 0, 0, 65)
+Sub2.Position = UDim2.new(0, 0, 0, 92)
 Sub2.BackgroundTransparency = 1
 Sub2.Text = "Enter Key"
 Sub2.TextColor3 = Color3.fromRGB(180, 180, 180)
 Sub2.Font = Enum.Font.Gotham
-Sub2.TextSize = 14
+Sub2.TextSize = 13
 Sub2.Parent = Frame2
 local KeyBox = Instance.new("TextBox")
-KeyBox.Size = UDim2.new(1, -40, 0, 40)
-KeyBox.Position = UDim2.new(0, 20, 0, 95)
+KeyBox.Size = UDim2.new(1, -40, 0, 38)
+KeyBox.Position = UDim2.new(0, 20, 0, 115)
 KeyBox.BackgroundColor3 = Color3.fromRGB(5, 5, 10)
 KeyBox.BorderSizePixel = 0
 KeyBox.Text = ""
@@ -231,8 +249,8 @@ local KS = Instance.new("UIStroke", KeyBox)
 KS.Color = Color3.fromRGB(30, 58, 95)
 KS.Thickness = 1
 local GetBtn = Instance.new("TextButton")
-GetBtn.Size = UDim2.new(0.5, -25, 0, 40)
-GetBtn.Position = UDim2.new(0, 20, 0, 150)
+GetBtn.Size = UDim2.new(0.5, -25, 0, 38)
+GetBtn.Position = UDim2.new(0, 20, 0, 160)
 GetBtn.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
 GetBtn.Text = "Get Key"
 GetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -241,8 +259,8 @@ GetBtn.TextSize = 14
 GetBtn.Parent = Frame2
 Instance.new("UICorner", GetBtn).CornerRadius = UDim.new(0, 8)
 local ContinueBtn = Instance.new("TextButton")
-ContinueBtn.Size = UDim2.new(0.5, -25, 0, 40)
-ContinueBtn.Position = UDim2.new(0.5, 5, 0, 150)
+ContinueBtn.Size = UDim2.new(0.5, -25, 0, 38)
+ContinueBtn.Position = UDim2.new(0.5, 5, 0, 160)
 ContinueBtn.BackgroundColor3 = Color3.fromRGB(79, 195, 247)
 ContinueBtn.Text = "Continue"
 ContinueBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -252,17 +270,31 @@ ContinueBtn.Parent = Frame2
 Instance.new("UICorner", ContinueBtn).CornerRadius = UDim.new(0, 8)
 local Msg = Instance.new("TextLabel")
 Msg.Size = UDim2.new(1, -40, 0, 20)
-Msg.Position = UDim2.new(0, 20, 0, 200)
+Msg.Position = UDim2.new(0, 20, 0, 208)
 Msg.BackgroundTransparency = 1
 Msg.Text = ""
 Msg.TextColor3 = Color3.fromRGB(231, 76, 60)
 Msg.Font = Enum.Font.GothamBold
 Msg.TextSize = 12
 Msg.Parent = Frame2
+local copied = false
 GetBtn.MouseButton1Click:Connect(function()
   if keyData.getKeyUrl and keyData.getKeyUrl ~= "" then
-    pcall(function() setclipboard(keyData.getKeyUrl) end)
-    GetBtn.Text = "Copied!"
+    pcall(function()
+      if setclipboard then
+        setclipboard(keyData.getKeyUrl)
+        copied = true
+      end
+    end)
+    if copied then
+      GetBtn.Text = "✅ Copied!"
+    else
+      GetBtn.Text = "❌ Error"
+    end
+    task.wait(1.5)
+    GetBtn.Text = "Get Key"
+  else
+    GetBtn.Text = "❌ No Link"
     task.wait(1.5)
     GetBtn.Text = "Get Key"
   end
@@ -273,17 +305,18 @@ ContinueBtn.MouseButton1Click:Connect(function()
   ContinueBtn.Text = "Verifying..."
   ContinueBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
   Msg.Text = ""
-  local verifyOk, verifyRes = pcall(function()
+  local ok, res = pcall(function()
     return HttpService:PostAsync("${verifyUrl}", HttpService:JSONEncode({key = k}), Enum.HttpContentType.ApplicationJson)
   end)
-  if not verifyOk or not verifyRes then
+  if not ok or not res then
     Msg.Text = "Incorrect Password"
     ContinueBtn.Text = "Continue"
     ContinueBtn.BackgroundColor3 = Color3.fromRGB(79, 195, 247)
     return
   end
-  local vd = HttpService:JSONDecode(verifyRes)
-  if not vd.ok then
+  local parsed
+  pcall(function() parsed = HttpService:JSONDecode(res) end)
+  if not parsed or not parsed.ok then
     Msg.Text = "Incorrect Password"
     ContinueBtn.Text = "Continue"
     ContinueBtn.BackgroundColor3 = Color3.fromRGB(79, 195, 247)
@@ -327,10 +360,10 @@ ContinueBtn.MouseButton1Click:Connect(function()
     NT2.TextSize = 12
     NT2.TextXAlignment = Enum.TextXAlignment.Left
     NT2.Parent = NF
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, -320, 0, 20)}):Play()
+    local TS = game:GetService("TweenService")
+    TS:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, -320, 0, 20)}):Play()
     task.wait(5)
-    TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, 320, 0, 20)}):Play()
+    TS:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, 320, 0, 20)}):Play()
     task.wait(0.5)
     NS:Destroy()
   end
@@ -414,9 +447,9 @@ app.post("/:id/verify", (req, res) => {
   const scriptKey = fs.existsSync(scriptKeyFile) ? fs.readFileSync(scriptKeyFile, "utf-8").trim() : "";
   const masterKey = getMasterKey();
 
-  if (providedKey === masterKey) return res.json({ ok: true });
-  if (scriptKey && providedKey === scriptKey) return res.json({ ok: true });
-  return res.json({ ok: false });
+  if (providedKey === masterKey) return res.json({ ok: true, via: "master" });
+  if (scriptKey && providedKey === scriptKey) return res.json({ ok: true, via: "script" });
+  return res.json({ ok: false, provided: providedKey, expected: scriptKey });
 });
 
 app.get("/:id/real", (req, res) => {
@@ -461,6 +494,19 @@ app.get("/:id", (req, res) => {
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.send(fs.readFileSync(codeFile, "utf-8"));
+});
+
+app.post("/:id/debug", (req, res) => {
+  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
+  const folder = path.join(UPLOADS, id);
+  if (!fs.existsSync(folder)) return res.status(404).json({ error: "Not found" });
+  const scriptKeyFile = path.join(folder, "scriptkey.txt");
+  const scriptKey = fs.existsSync(scriptKeyFile) ? fs.readFileSync(scriptKeyFile, "utf-8").trim() : "";
+  const getkeyFile = path.join(folder, "getkey.txt");
+  const getKeyUrl = fs.existsSync(getkeyFile) ? fs.readFileSync(getkeyFile, "utf-8").trim() : "";
+  const notifyFile = path.join(folder, "notify.txt");
+  const notifyText = fs.existsSync(notifyFile) ? fs.readFileSync(notifyFile, "utf-8").trim() : "";
+  res.json({ id, scriptKey, getKeyUrl, notifyText, masterKey: getMasterKey() });
 });
 
 const PORT = process.env.PORT || 3000;
