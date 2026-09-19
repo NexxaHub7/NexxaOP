@@ -32,10 +32,45 @@ function genLoader(host, id, hasKeySystem) {
   const verifyUrl = "https://" + host + "/" + id + "/verify";
   const realUrl = "https://" + host + "/" + id + "/real";
 
+  const httpHelper = `
+local function fetchUrl(url, method, body)
+  local req = nil
+  if syn and syn.request then req = syn.request
+  elseif http and http.request then req = http.request
+  elseif http_request then req = http_request
+  elseif request then req = request
+  end
+  if req then
+    local opts = {Url = url, Method = method or "GET"}
+    if body then
+      opts.Body = body
+      opts.Headers = {["Content-Type"] = "application/json"}
+    end
+    local ok, res = pcall(req, opts)
+    if ok and res and res.Body then
+      return res.Body
+    end
+  end
+  local hs = game:GetService("HttpService")
+  if method == "POST" then
+    local ok, res = pcall(function()
+      return hs:PostAsync(url, body or "", Enum.HttpContentType.ApplicationJson)
+    end)
+    if ok then return res end
+  else
+    local ok, res = pcall(function()
+      return hs:GetAsync(url)
+    end)
+    if ok then return res end
+  end
+  return nil
+end
+`;
+
   if (!hasKeySystem) {
     return `--By Nexxa OP
-local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+${httpHelper}
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
@@ -81,11 +116,11 @@ Sub.Parent = Frame
 task.wait(5)
 ScreenGui:Destroy()
 local notifyText = ""
-pcall(function()
-  local kd = HttpService:GetAsync("${keyDataUrl}")
-  local decoded = HttpService:JSONDecode(kd)
-  notifyText = decoded.notifyText or ""
-end)
+local kd = fetchUrl("${keyDataUrl}", "GET")
+if kd then
+  local ok, decoded = pcall(function() return game:GetService("HttpService"):JSONDecode(kd) end)
+  if ok and decoded then notifyText = decoded.notifyText or "" end
+end
 if notifyText ~= "" then
   local NS = Instance.new("ScreenGui")
   NS.Name = "NexxaOPNotify"
@@ -130,10 +165,8 @@ if notifyText ~= "" then
   task.wait(0.5)
   NS:Destroy()
 end
-local codeOk, realCode = pcall(function()
-  return HttpService:GetAsync("${realUrl}")
-end)
-if codeOk and realCode then
+local realCode = fetchUrl("${realUrl}", "GET")
+if realCode then
   local fn = loadstring(realCode)
   if fn then pcall(fn) end
 end
@@ -141,8 +174,8 @@ end
   }
 
   return `--By Nexxa OP
-local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+${httpHelper}
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
@@ -188,10 +221,11 @@ Sub.Parent = Frame
 task.wait(5)
 ScreenGui:Destroy()
 local keyData = {getKeyUrl = "", notifyText = ""}
-pcall(function()
-  local kd = HttpService:GetAsync("${keyDataUrl}")
-  keyData = HttpService:JSONDecode(kd)
-end)
+local kd = fetchUrl("${keyDataUrl}", "GET")
+if kd then
+  local ok, decoded = pcall(function() return game:GetService("HttpService"):JSONDecode(kd) end)
+  if ok and decoded then keyData = decoded end
+end
 local Screen2 = Instance.new("ScreenGui")
 Screen2.Name = "NexxaOPKeySystem"
 Screen2.ResetOnSpawn = false
@@ -277,9 +311,9 @@ Msg.TextColor3 = Color3.fromRGB(231, 76, 60)
 Msg.Font = Enum.Font.GothamBold
 Msg.TextSize = 12
 Msg.Parent = Frame2
-local copied = false
 GetBtn.MouseButton1Click:Connect(function()
   if keyData.getKeyUrl and keyData.getKeyUrl ~= "" then
+    local copied = false
     pcall(function()
       if setclipboard then
         setclipboard(keyData.getKeyUrl)
@@ -287,14 +321,14 @@ GetBtn.MouseButton1Click:Connect(function()
       end
     end)
     if copied then
-      GetBtn.Text = "✅ Copied!"
+      GetBtn.Text = "Copied!"
     else
-      GetBtn.Text = "❌ Error"
+      GetBtn.Text = "Error"
     end
     task.wait(1.5)
     GetBtn.Text = "Get Key"
   else
-    GetBtn.Text = "❌ No Link"
+    GetBtn.Text = "No Link"
     task.wait(1.5)
     GetBtn.Text = "Get Key"
   end
@@ -305,17 +339,16 @@ ContinueBtn.MouseButton1Click:Connect(function()
   ContinueBtn.Text = "Verifying..."
   ContinueBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
   Msg.Text = ""
-  local ok, res = pcall(function()
-    return HttpService:PostAsync("${verifyUrl}", HttpService:JSONEncode({key = k}), Enum.HttpContentType.ApplicationJson)
-  end)
-  if not ok or not res then
-    Msg.Text = "Incorrect Password"
+  local body = game:GetService("HttpService"):JSONEncode({key = k})
+  local res = fetchUrl("${verifyUrl}", "POST", body)
+  if not res then
+    Msg.Text = "Network Error"
     ContinueBtn.Text = "Continue"
     ContinueBtn.BackgroundColor3 = Color3.fromRGB(79, 195, 247)
     return
   end
   local parsed
-  pcall(function() parsed = HttpService:JSONDecode(res) end)
+  pcall(function() parsed = game:GetService("HttpService"):JSONDecode(res) end)
   if not parsed or not parsed.ok then
     Msg.Text = "Incorrect Password"
     ContinueBtn.Text = "Continue"
@@ -367,10 +400,8 @@ ContinueBtn.MouseButton1Click:Connect(function()
     task.wait(0.5)
     NS:Destroy()
   end
-  local codeOk, realCode = pcall(function()
-    return HttpService:GetAsync("${realUrl}?k=" .. HttpService:UrlEncode(k))
-  end)
-  if codeOk and realCode then
+  local realCode = fetchUrl("${realUrl}?k=" .. game:GetService("HttpService"):UrlEncode(k), "GET")
+  if realCode then
     local fn = loadstring(realCode)
     if fn then pcall(fn) end
   end
