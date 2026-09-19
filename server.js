@@ -123,10 +123,10 @@ if notifyText ~= "" then
   NT2.TextSize = 12
   NT2.TextXAlignment = Enum.TextXAlignment.Left
   NT2.Parent = NF
-  local TweenService = game:GetService("TweenService")
-  TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, -320, 0, 20)}):Play()
+  local TS = game:GetService("TweenService")
+  TS:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, -320, 0, 20)}):Play()
   task.wait(5)
-  TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, 320, 0, 20)}):Play()
+  TS:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, 320, 0, 20)}):Play()
   task.wait(0.5)
   NS:Destroy()
 end
@@ -449,7 +449,7 @@ app.post("/:id/verify", (req, res) => {
 
   if (providedKey === masterKey) return res.json({ ok: true, via: "master" });
   if (scriptKey && providedKey === scriptKey) return res.json({ ok: true, via: "script" });
-  return res.json({ ok: false, provided: providedKey, expected: scriptKey });
+  return res.json({ ok: false });
 });
 
 app.get("/:id/real", (req, res) => {
@@ -483,23 +483,12 @@ app.get("/:id/raw", (req, res) => {
   res.send(loader);
 });
 
-app.get("/:id", (req, res) => {
+app.get("/:id/debug", (req, res) => {
   const id = req.params.id.replace(/[^a-f0-9]/gi, "");
   const folder = path.join(UPLOADS, id);
-  const codeFile = path.join(folder, "code.lua");
-
-  if (!fs.existsSync(folder) || !fs.existsSync(codeFile)) {
-    return res.status(404).send("-- Not found");
+  if (!fs.existsSync(folder)) {
+    return res.status(404).json({ error: "Not found" });
   }
-
-  res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.send(fs.readFileSync(codeFile, "utf-8"));
-});
-
-app.post("/:id/debug", (req, res) => {
-  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
-  const folder = path.join(UPLOADS, id);
-  if (!fs.existsSync(folder)) return res.status(404).json({ error: "Not found" });
   const scriptKeyFile = path.join(folder, "scriptkey.txt");
   const scriptKey = fs.existsSync(scriptKeyFile) ? fs.readFileSync(scriptKeyFile, "utf-8").trim() : "";
   const getkeyFile = path.join(folder, "getkey.txt");
@@ -507,6 +496,15 @@ app.post("/:id/debug", (req, res) => {
   const notifyFile = path.join(folder, "notify.txt");
   const notifyText = fs.existsSync(notifyFile) ? fs.readFileSync(notifyFile, "utf-8").trim() : "";
   res.json({ id, scriptKey, getKeyUrl, notifyText, masterKey: getMasterKey() });
+});
+
+app.get("/:id", (req, res) => {
+  const id = req.params.id.replace(/[^a-f0-9]/gi, "");
+  const folder = path.join(UPLOADS, id);
+  if (!fs.existsSync(folder)) {
+    return res.status(404).send("-- Not found");
+  }
+  res.redirect("/" + id + "/raw");
 });
 
 const PORT = process.env.PORT || 3000;
