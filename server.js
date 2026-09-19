@@ -27,19 +27,22 @@ function genId() {
 }
 
 function genLoader(host, id, hasKeySystem) {
-  const rawUrl = "https://" + host + "/" + id + "/raw";
-  const realUrl = "https://" + host + "/" + id + "/real";
   const keyDataUrl = "https://" + host + "/" + id + "/keydata";
+  const verifyUrl = "https://" + host + "/" + id + "/verify";
+  const realUrl = "https://" + host + "/" + id + "/real";
 
   if (!hasKeySystem) {
     return `--By Nexxa OP
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local CoreGui = pcall(function() return game:GetService("CoreGui") end)
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NexxaOPProtection"
+ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then
-  ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+  ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 end
 local Frame = Instance.new("Frame")
 Frame.Size = UDim2.new(0, 420, 0, 160)
@@ -71,28 +74,80 @@ Sub.TextSize = 14
 Sub.Parent = Frame
 task.wait(5)
 ScreenGui:Destroy()
-local ok, code = pcall(function()
-  return game:GetService("HttpService"):GetAsync("${realUrl}")
+local notifyText = ""
+pcall(function()
+  local kd = HttpService:GetAsync("${keyDataUrl}")
+  local decoded = HttpService:JSONDecode(kd)
+  notifyText = decoded.notifyText or ""
 end)
-if ok and code then
-  local fn = loadstring(code)
+if notifyText ~= "" then
+  local NS = Instance.new("ScreenGui")
+  NS.Name = "NexxaOPNotify"
+  NS.ResetOnSpawn = false
+  NS.IgnoreGuiInset = true
+  pcall(function() NS.Parent = game:GetService("CoreGui") end)
+  if not NS.Parent then NS.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
+  local NF = Instance.new("Frame")
+  NF.Size = UDim2.new(0, 300, 0, 80)
+  NF.Position = UDim2.new(1, 320, 0, 20)
+  NF.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+  NF.BorderSizePixel = 0
+  NF.Parent = NS
+  Instance.new("UICorner", NF).CornerRadius = UDim.new(0, 12)
+  local NS2 = Instance.new("UIStroke", NF)
+  NS2.Color = Color3.fromRGB(255, 140, 0)
+  NS2.Thickness = 2
+  local NT = Instance.new("TextLabel")
+  NT.Size = UDim2.new(1, -20, 0, 30)
+  NT.Position = UDim2.new(0, 10, 0, 10)
+  NT.BackgroundTransparency = 1
+  NT.Text = notifyText
+  NT.TextColor3 = Color3.fromRGB(255, 140, 0)
+  NT.Font = Enum.Font.GothamBold
+  NT.TextSize = 16
+  NT.TextXAlignment = Enum.TextXAlignment.Left
+  NT.Parent = NF
+  local NT2 = Instance.new("TextLabel")
+  NT2.Size = UDim2.new(1, -20, 0, 20)
+  NT2.Position = UDim2.new(0, 10, 0, 45)
+  NT2.BackgroundTransparency = 1
+  NT2.Text = "Nexxa OP"
+  NT2.TextColor3 = Color3.fromRGB(150, 150, 150)
+  NT2.Font = Enum.Font.Gotham
+  NT2.TextSize = 12
+  NT2.TextXAlignment = Enum.TextXAlignment.Left
+  NT2.Parent = NF
+  local TweenService = game:GetService("TweenService")
+  TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, -320, 0, 20)}):Play()
+  task.wait(5)
+  TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, 320, 0, 20)}):Play()
+  task.wait(0.5)
+  NS:Destroy()
+end
+local codeOk, realCode = pcall(function()
+  return HttpService:GetAsync("${realUrl}")
+end)
+if codeOk and realCode then
+  local fn = loadstring(realCode)
   if fn then pcall(fn) end
 end
 `;
   }
 
   return `--By Nexxa OP
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NexxaOPProtection"
+ScreenGui.Name = "NexxaOPProtected"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
 if not ScreenGui.Parent then
-  ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+  ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 end
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 420, 0, 240)
-Frame.Position = UDim2.new(0.5, -210, 0.5, -120)
+Frame.Size = UDim2.new(0, 420, 0, 160)
+Frame.Position = UDim2.new(0.5, -210, 0.5, -80)
 Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
@@ -102,7 +157,7 @@ Stroke.Color = Color3.fromRGB(255, 140, 0)
 Stroke.Thickness = 2
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Position = UDim2.new(0, 0, 0, 20)
+Title.Position = UDim2.new(0, 0, 0, 40)
 Title.BackgroundTransparency = 1
 Title.Text = "Protected By Nexxa OP"
 Title.TextColor3 = Color3.fromRGB(255, 140, 0)
@@ -110,14 +165,55 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 22
 Title.Parent = Frame
 local Sub = Instance.new("TextLabel")
-Sub.Size = UDim2.new(1, 0, 0, 20)
-Sub.Position = UDim2.new(0, 0, 0, 65)
+Sub.Size = UDim2.new(1, 0, 0, 30)
+Sub.Position = UDim2.new(0, 0, 0, 90)
 Sub.BackgroundTransparency = 1
-Sub.Text = "Enter Key"
+Sub.Text = "Loading..."
 Sub.TextColor3 = Color3.fromRGB(180, 180, 180)
 Sub.Font = Enum.Font.Gotham
 Sub.TextSize = 14
 Sub.Parent = Frame
+task.wait(5)
+ScreenGui:Destroy()
+local keyData = {getKeyUrl = "", notifyText = ""}
+pcall(function()
+  local kd = HttpService:GetAsync("${keyDataUrl}")
+  keyData = HttpService:JSONDecode(kd)
+end)
+local Screen2 = Instance.new("ScreenGui")
+Screen2.Name = "NexxaOPKeySystem"
+Screen2.ResetOnSpawn = false
+Screen2.IgnoreGuiInset = true
+pcall(function() Screen2.Parent = game:GetService("CoreGui") end)
+if not Screen2.Parent then Screen2.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
+local Frame2 = Instance.new("Frame")
+Frame2.Size = UDim2.new(0, 420, 0, 240)
+Frame2.Position = UDim2.new(0.5, -210, 0.5, -120)
+Frame2.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Frame2.BorderSizePixel = 0
+Frame2.Parent = Screen2
+Instance.new("UICorner", Frame2).CornerRadius = UDim.new(0, 16)
+local Stroke2 = Instance.new("UIStroke", Frame2)
+Stroke2.Color = Color3.fromRGB(255, 140, 0)
+Stroke2.Thickness = 2
+local Title2 = Instance.new("TextLabel")
+Title2.Size = UDim2.new(1, 0, 0, 40)
+Title2.Position = UDim2.new(0, 0, 0, 20)
+Title2.BackgroundTransparency = 1
+Title2.Text = "Protected By Nexxa OP"
+Title2.TextColor3 = Color3.fromRGB(255, 140, 0)
+Title2.Font = Enum.Font.GothamBold
+Title2.TextSize = 22
+Title2.Parent = Frame2
+local Sub2 = Instance.new("TextLabel")
+Sub2.Size = UDim2.new(1, 0, 0, 20)
+Sub2.Position = UDim2.new(0, 0, 0, 65)
+Sub2.BackgroundTransparency = 1
+Sub2.Text = "Enter Key"
+Sub2.TextColor3 = Color3.fromRGB(180, 180, 180)
+Sub2.Font = Enum.Font.Gotham
+Sub2.TextSize = 14
+Sub2.Parent = Frame2
 local KeyBox = Instance.new("TextBox")
 KeyBox.Size = UDim2.new(1, -40, 0, 40)
 KeyBox.Position = UDim2.new(0, 20, 0, 95)
@@ -128,11 +224,12 @@ KeyBox.PlaceholderText = "Enter Key"
 KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 KeyBox.Font = Enum.Font.Code
 KeyBox.TextSize = 14
-KeyBox.Parent = Frame
+KeyBox.ClearTextOnFocus = false
+KeyBox.Parent = Frame2
 Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
-local KeyStroke = Instance.new("UIStroke", KeyBox)
-KeyStroke.Color = Color3.fromRGB(30, 58, 95)
-KeyStroke.Thickness = 1
+local KS = Instance.new("UIStroke", KeyBox)
+KS.Color = Color3.fromRGB(30, 58, 95)
+KS.Thickness = 1
 local GetBtn = Instance.new("TextButton")
 GetBtn.Size = UDim2.new(0.5, -25, 0, 40)
 GetBtn.Position = UDim2.new(0, 20, 0, 150)
@@ -141,7 +238,7 @@ GetBtn.Text = "Get Key"
 GetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 GetBtn.Font = Enum.Font.GothamBold
 GetBtn.TextSize = 14
-GetBtn.Parent = Frame
+GetBtn.Parent = Frame2
 Instance.new("UICorner", GetBtn).CornerRadius = UDim.new(0, 8)
 local ContinueBtn = Instance.new("TextButton")
 ContinueBtn.Size = UDim2.new(0.5, -25, 0, 40)
@@ -151,7 +248,7 @@ ContinueBtn.Text = "Continue"
 ContinueBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ContinueBtn.Font = Enum.Font.GothamBold
 ContinueBtn.TextSize = 14
-ContinueBtn.Parent = Frame
+ContinueBtn.Parent = Frame2
 Instance.new("UICorner", ContinueBtn).CornerRadius = UDim.new(0, 8)
 local Msg = Instance.new("TextLabel")
 Msg.Size = UDim2.new(1, -40, 0, 20)
@@ -161,21 +258,10 @@ Msg.Text = ""
 Msg.TextColor3 = Color3.fromRGB(231, 76, 60)
 Msg.Font = Enum.Font.GothamBold
 Msg.TextSize = 12
-Msg.Parent = Frame
-local HttpService = game:GetService("HttpService")
-local keyDataOk, keyData = pcall(function()
-  return HttpService:GetAsync("${keyDataUrl}")
-end)
-local getKeyUrl = ""
-local notifyText = ""
-if keyDataOk and keyData then
-  local decoded = HttpService:JSONDecode(keyData)
-  getKeyUrl = decoded.getKeyUrl or ""
-  notifyText = decoded.notifyText or ""
-end
+Msg.Parent = Frame2
 GetBtn.MouseButton1Click:Connect(function()
-  if getKeyUrl ~= "" then
-    pcall(function() setclipboard(getKeyUrl) end)
+  if keyData.getKeyUrl and keyData.getKeyUrl ~= "" then
+    pcall(function() setclipboard(keyData.getKeyUrl) end)
     GetBtn.Text = "Copied!"
     task.wait(1.5)
     GetBtn.Text = "Get Key"
@@ -186,9 +272,9 @@ ContinueBtn.MouseButton1Click:Connect(function()
   if k == "" then return end
   ContinueBtn.Text = "Verifying..."
   ContinueBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-  local body = HttpService:JSONEncode({key = k})
+  Msg.Text = ""
   local verifyOk, verifyRes = pcall(function()
-    return HttpService:PostAsync("https://${host}/${id}/verify", body, Enum.HttpContentType.ApplicationJson)
+    return HttpService:PostAsync("${verifyUrl}", HttpService:JSONEncode({key = k}), Enum.HttpContentType.ApplicationJson)
   end)
   if not verifyOk or not verifyRes then
     Msg.Text = "Incorrect Password"
@@ -203,58 +289,53 @@ ContinueBtn.MouseButton1Click:Connect(function()
     ContinueBtn.BackgroundColor3 = Color3.fromRGB(79, 195, 247)
     return
   end
-  Msg.Text = ""
-  ScreenGui:Destroy()
-  if notifyText ~= "" then
-    local N = Instance.new("ScreenGui")
-    N.Name = "NexxaOPNotify"
-    N.ResetOnSpawn = false
-    N.IgnoreGuiInset = true
-    pcall(function() N.Parent = game:GetService("CoreGui") end)
-    if not N.Parent then
-      N.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    end
+  Screen2:Destroy()
+  if keyData.notifyText and keyData.notifyText ~= "" then
+    local NS = Instance.new("ScreenGui")
+    NS.Name = "NexxaOPNotify"
+    NS.ResetOnSpawn = false
+    NS.IgnoreGuiInset = true
+    pcall(function() NS.Parent = game:GetService("CoreGui") end)
+    if not NS.Parent then NS.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
     local NF = Instance.new("Frame")
     NF.Size = UDim2.new(0, 300, 0, 80)
     NF.Position = UDim2.new(1, 320, 0, 20)
     NF.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
     NF.BorderSizePixel = 0
-    NF.Parent = N
+    NF.Parent = NS
     Instance.new("UICorner", NF).CornerRadius = UDim.new(0, 12)
-    local NS = Instance.new("UIStroke", NF)
-    NS.Color = Color3.fromRGB(255, 140, 0)
-    NS.Thickness = 2
+    local NS2 = Instance.new("UIStroke", NF)
+    NS2.Color = Color3.fromRGB(255, 140, 0)
+    NS2.Thickness = 2
     local NT = Instance.new("TextLabel")
     NT.Size = UDim2.new(1, -20, 0, 30)
     NT.Position = UDim2.new(0, 10, 0, 10)
     NT.BackgroundTransparency = 1
-    NT.Text = notifyText
+    NT.Text = keyData.notifyText
     NT.TextColor3 = Color3.fromRGB(255, 140, 0)
     NT.Font = Enum.Font.GothamBold
     NT.TextSize = 16
     NT.TextXAlignment = Enum.TextXAlignment.Left
     NT.Parent = NF
-    local NS2 = Instance.new("TextLabel")
-    NS2.Size = UDim2.new(1, -20, 0, 20)
-    NS2.Position = UDim2.new(0, 10, 0, 45)
-    NS2.BackgroundTransparency = 1
-    NS2.Text = "Nexxa OP"
-    NS2.TextColor3 = Color3.fromRGB(150, 150, 150)
-    NS2.Font = Enum.Font.Gotham
-    NS2.TextSize = 12
-    NS2.TextXAlignment = Enum.TextXAlignment.Left
-    NS2.Parent = NF
-    task.spawn(function()
-      local TweenService = game:GetService("TweenService")
-      TweenService:Create(NF, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(1, -320, 0, 20)}):Play()
-      task.wait(5)
-      TweenService:Create(NF, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(1, 320, 0, 20)}):Play()
-      task.wait(0.5)
-      N:Destroy()
-    end)
+    local NT2 = Instance.new("TextLabel")
+    NT2.Size = UDim2.new(1, -20, 0, 20)
+    NT2.Position = UDim2.new(0, 10, 0, 45)
+    NT2.BackgroundTransparency = 1
+    NT2.Text = "Nexxa OP"
+    NT2.TextColor3 = Color3.fromRGB(150, 150, 150)
+    NT2.Font = Enum.Font.Gotham
+    NT2.TextSize = 12
+    NT2.TextXAlignment = Enum.TextXAlignment.Left
+    NT2.Parent = NF
+    local TweenService = game:GetService("TweenService")
+    TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, -320, 0, 20)}):Play()
+    task.wait(5)
+    TweenService:Create(NF, TweenInfo.new(0.4), {Position = UDim2.new(1, 320, 0, 20)}):Play()
+    task.wait(0.5)
+    NS:Destroy()
   end
   local codeOk, realCode = pcall(function()
-    return HttpService:GetAsync("https://${host}/${id}/real?k=" .. HttpService:UrlEncode(k))
+    return HttpService:GetAsync("${realUrl}?k=" .. HttpService:UrlEncode(k))
   end)
   if codeOk and realCode then
     local fn = loadstring(realCode)
